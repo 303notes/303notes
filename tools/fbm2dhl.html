@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Amazon Lieferschein → CSV</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: #fafafa;
+        color: #1a1a1a;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* Header */
+      .header {
+        background: white;
+        border-bottom: 1px solid #e5e5e5;
+        padding: 16px 0;
+        margin-bottom: 32px;
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 13px;
+        color: #666;
+      }
+
+      /* Info Box */
+      .info-box {
+        background: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin-bottom: 32px;
+        position: relative;
+      }
+
+      .info-box h3 {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+
+      .info-box ol {
+        margin-left: 20px;
+        font-size: 13px;
+        color: #333;
+      }
+
+      .info-box ol li {
+        margin-bottom: 6px;
+      }
+
+      .info-footer {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #2e7d32;
+        font-weight: 500;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #666;
+        cursor: pointer;
+        padding: 4px;
+        line-height: 1;
+      }
+
+      /* Sections */
+      .section {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+
+      .section-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        color: #1a1a1a;
+      }
+
+      .section-description {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 16px;
+        line-height: 1.6;
+      }
+
+      /* Upload Area */
+      .upload-wrapper {
+        width: 100%;
+      }
+
+      .upload-area {
+        display: block;
+        width: 100%;
+        border: 2px dashed #d0d0d0;
+        border-radius: 8px;
+        padding: 64px 24px;
+        text-align: center;
+        background: white;
+        transition: all 0.2s;
+        cursor: pointer;
+        box-sizing: border-box;
+      }
+
+      .upload-area:hover {
+        border-color: #999;
+        background: #fafafa;
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
+      }
+
+      .upload-text {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+
+      .upload-hint {
+        font-size: 12px;
+        color: #999;
+      }
+
+      .upload-area.has-files {
+        border-color: #4caf50;
+        background: #f1f8f4;
+      }
+
+      .file-list {
+        margin-top: 12px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .file-item-icon {
+        font-size: 16px;
+      }
+
+      .file-item-name {
+        flex: 1;
+        color: #333;
+      }
+
+      .file-item-size {
+        color: #999;
+        font-size: 12px;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      /* Form Grid */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group.full {
+        grid-column: 1 / -1;
+      }
+
+      .form-label {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #333;
+      }
+
+      .form-label .required {
+        color: #d32f2f;
+        margin-left: 2px;
+      }
+
+      .form-input {
+        padding: 10px 12px;
+        border: 1px solid #d0d0d0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.2s;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: #333;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+      }
+
+      .form-hint {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: #1a1a1a;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #333;
+      }
+
+      .btn-secondary {
+        background: #f5f5f5;
+        color: #333;
+        border: 1px solid #d0d0d0;
+      }
+
+      .btn-secondary:hover {
+        background: #e5e5e5;
+      }
+
+      .btn-danger {
+        background: #d32f2f;
+        color: white;
+        font-size: 11px;
+        padding: 6px 12px;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      /* Table */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+      }
+
+      .data-table thead {
+        background: #f5f5f5;
+      }
+
+      .data-table th {
+        padding: 12px 8px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .data-table td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .data-table input,
+      .data-table textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #d0d0d0;
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: inherit;
+      }
+
+      .data-table input:focus,
+      .data-table textarea:focus {
+        outline: none;
+        border-color: #333;
+      }
+
+      .data-table textarea {
+        resize: vertical;
+        min-height: 36px;
+        max-height: 120px;
+      }
+
+      .data-table .small-input {
+        width: 70px;
+      }
+
+      .status-icon {
+        text-align: center;
+        font-size: 18px;
+      }
+
+      .delete-btn {
+        background: none;
+        border: none;
+        color: #d32f2f;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 4px;
+      }
+
+      .delete-btn:hover {
+        color: #b71c1c;
+      }
+
+      /* Log */
+      .log-section {
+        margin-top: 24px;
+      }
+
+      .log-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        margin-bottom: 12px;
+      }
+
+      .log-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .log-content {
+        background: #f5f5f5;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        max-height: 300px;
+        overflow: auto;
+        white-space: pre-wrap;
+        color: #333;
+      }
+
+      .log-empty {
+        text-align: center;
+        color: #999;
+        padding: 24px;
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 48px;
+        padding: 24px 0;
+        border-top: 1px solid #e5e5e5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #999;
+      }
+
+      /* Drag & Drop States */
+      .upload-area.dragover {
+        border-color: #333;
+        background: #f0f0f0;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .header-content {
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .btn-group {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <span>📦</span>
+            <span>FBM2DHL</span>
+          </div>
+          <div class="user-info">
+            <span>v1.0</span>
+            <button id="resetBtn" class="btn-danger">Alle Daten löschen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Info Box -->
+      <div class="info-box" id="infoBox">
+        <button class="close-btn" onclick="document.getElementById('infoBox').style.display='none'">×</button>
+        <h3>So funktioniert's</h3>
+        <ol>
+          <li>In Amazon Seller Central den/die Lieferschein(e) als HTML speichern</li>
+          <li>Die HTML-Dateien hier hochladen (Drag & Drop oder Klicken)</li>
+          <li>Paketklassen definieren und ASINs zuordnen</li>
+          <li>Auf "Mapping anwenden" klicken (grüner Haken = gespeichert)</li>
+          <li>Auf "DHL Sendungsdatenimport" klicken und die CSV in DHL hochladen</li>
+        </ol>
+        <div class="info-footer">💾 Alle Eingaben werden automatisch im Browser gespeichert.</div>
+      </div>
+
+      <!-- File Upload Section -->
+      <div class="section">
+        <h2 class="section-title">Dateien hochladen</h2>
+        <div class="upload-wrapper">
+          <label for="files" class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Dateien hierher ziehen oder klicken zum Auswählen</div>
+            <div class="upload-hint">Akzeptiert: .html, .htm (Amazon Lieferschein-Dateien)</div>
+          </label>
+        </div>
+        <input id="files" type="file" accept=".html,.htm" multiple />
+        <ul class="file-list" id="fileList"></ul>
+      </div>
+
+      <!-- Sender Address Section -->
+      <div class="section">
+        <h2 class="section-title">Absender-Adresse</h2>
+        <p class="section-description">Diese Adresse wird für alle Sendungen als Absender verwendet.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Name 1<span class="required">*</span></label>
+            <input id="senderName1" type="text" class="form-input" value="" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name 2</label>
+            <input id="senderName2" type="text" class="form-input" value="" />
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Straße + Hausnummer<span class="required">*</span></label>
+            <input id="senderStreetFull" type="text" class="form-input" value="" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">PLZ<span class="required">*</span></label>
+            <input id="senderPlz" type="text" class="form-input" value="" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ort<span class="required">*</span></label>
+            <input id="senderCity" type="text" class="form-input" value="" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Land<span class="required">*</span></label>
+            <input id="senderCountry" type="text" class="form-input" value="DEU" placeholder="z.B. DEU" />
+            <span class="form-hint">ISO 3166-1 alpha-3 (z.B. DEU, AUT, CHE)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Numbers Section -->
+      <div class="section">
+        <h2 class="section-title">DHL-Abrechnungsnummern</h2>
+        <p class="section-description">Hinterlege deine Abrechnungsnummern pro Produkttyp. Die passende Nummer wird automatisch basierend auf Gewicht und Maßen ausgewählt.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">V62KP (DHL Kleinpaket, bis 1kg)</label>
+            <input id="billingV62KP" type="text" class="form-input" value="" placeholder="z.B. 52504491726201" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">V01PAK (DHL Paket, über 1kg)</label>
+            <input id="billingV01PAK" type="text" class="form-input" value="" placeholder="z.B. 52504491720101" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Package Mapping Section -->
+      <div class="section">
+        <h2 class="section-title">Paketklassen-Mapping</h2>
+        <p class="section-description">
+          Definiere Paketklassen mit Maßen und Gewicht. ASINs können komma- oder leerzeichengetrennt eingegeben werden. Gewicht in <strong>Gramm</strong> eingeben (wird automatisch in kg umgerechnet).
+        </p>
+
+        <div class="btn-group">
+          <button id="addRowBtn" class="btn btn-secondary">+ Paketklasse hinzufügen</button>
+          <button id="applyMappingBtn" class="btn btn-primary">🔄 Mapping anwenden</button>
+        </div>
+
+        <table id="mappingTable" class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>ASINs</th>
+              <th>L (cm)</th>
+              <th>B (cm)</th>
+              <th>H (cm)</th>
+              <th>Gewicht (g)</th>
+              <th>DHL-Code</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Zeilen werden per JS erzeugt -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="section">
+        <div class="btn-group">
+          <button id="runBtn" class="btn btn-secondary">📄 CSV generieren (Analyse)</button>
+          <button id="runDhlBtn" class="btn btn-primary">📦 DHL Sendungsdatenimport</button>
+        </div>
+      </div>
+
+      <!-- Log Section -->
+      <div class="log-section">
+        <div class="log-header">
+          <span>▼</span>
+          <span class="log-title">Protokoll (<span id="logCount">0</span>)</span>
+        </div>
+        <div id="log" class="log-content">
+          <div class="log-empty">Noch keine Einträge</div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div>FBM2DHL v1.0</div>
+        <div>Alle Daten werden sicher im Browser gespeichert</div>
+      </div>
+
+    </div>
+
+    <script>
+      // Mapping: ASIN (uppercase) -> Paketklasse-Daten
+      let ASIN_MAPPING = {};
+
+      // LocalStorage-Schlüssel
+      const STORAGE_KEYS = {
+        sender: "fbm2dhl_sender",
+        billing: "fbm2dhl_billing",
+        mappingRows: "fbm2dhl_mapping_rows"
+      };
+
+      function log(msg) {
+        const el = document.getElementById("log");
+        const empty = el.querySelector(".log-empty");
+        if (empty) empty.remove();
+
+        el.textContent += msg + "\n";
+
+        // Update log count
+        const logCount = el.textContent.trim().split("\n").filter(Boolean).length;
+        document.getElementById("logCount").textContent = logCount;
+      }
+
+      // Daten in localStorage speichern
+      function saveToLocalStorage() {
+        // Absender-Adresse
+        const senderData = {
+          name1: document.getElementById("senderName1")?.value || "",
+          name2: document.getElementById("senderName2")?.value || "",
+          streetFull: document.getElementById("senderStreetFull")?.value || "",
+          plz: document.getElementById("senderPlz")?.value || "",
+          city: document.getElementById("senderCity")?.value || "",
+          country: document.getElementById("senderCountry")?.value || ""
+        };
+        localStorage.setItem(STORAGE_KEYS.sender, JSON.stringify(senderData));
+
+        // Abrechnungsnummern
+        const billingData = {
+          v62kp: document.getElementById("billingV62KP")?.value || "",
+          v01pak: document.getElementById("billingV01PAK")?.value || ""
+        };
+        localStorage.setItem(STORAGE_KEYS.billing, JSON.stringify(billingData));
+
+        // Mapping-Tabelle
+        const tbody = document.querySelector("#mappingTable tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const mappingRows = rows.map(row => ({
+          className: row.querySelector(".className")?.value || "",
+          asins: row.querySelector(".asins")?.value || "",
+          lengthCm: row.querySelector(".length")?.value || "",
+          widthCm: row.querySelector(".width")?.value || "",
+          heightCm: row.querySelector(".height")?.value || "",
+          weightGrams: row.querySelector(".weight")?.value || ""
+        }));
+        localStorage.setItem(STORAGE_KEYS.mappingRows, JSON.stringify(mappingRows));
+      }
+
+      // Daten aus localStorage laden
+      function loadFromLocalStorage() {
+        // Absender-Adresse
+        const senderData = JSON.parse(localStorage.getItem(STORAGE_KEYS.sender) || "{}");
+        if (senderData.name1) {
+          document.getElementById("senderName1").value = senderData.name1;
+          document.getElementById("senderName2").value = senderData.name2 || "";
+          document.getElementById("senderStreetFull").value = senderData.streetFull || "";
+          document.getElementById("senderPlz").value = senderData.plz || "";
+          document.getElementById("senderCity").value = senderData.city || "";
+          document.getElementById("senderCountry").value = senderData.country || "";
+        }
+
+        // Abrechnungsnummern
+        const billingData = JSON.parse(localStorage.getItem(STORAGE_KEYS.billing) || "{}");
+        if (billingData.v62kp) {
+          document.getElementById("billingV62KP").value = billingData.v62kp;
+          document.getElementById("billingV01PAK").value = billingData.v01pak || "";
+        }
+
+        // Mapping-Tabelle
+        const mappingRows = JSON.parse(localStorage.getItem(STORAGE_KEYS.mappingRows) || "[]");
+        if (mappingRows.length > 0) {
+          // Lösche Beispielzeilen
+          const tbody = document.querySelector("#mappingTable tbody");
+          tbody.innerHTML = "";
+
+          // Lade gespeicherte Zeilen
+          mappingRows.forEach(rowData => {
+            addMappingRow(rowData);
+          });
+        }
+      }
+
+      function escapeCsv(val) {
+        const s = (val ?? "").toString().replace(/"/g, '""');
+        return `"${s}"`;
+      }
+
+      function autoResizeTextarea(el) {
+        el.style.height = "auto";
+        el.style.height = el.scrollHeight + "px";
+      }
+
+      // Trennt Straße und Hausnummer
+      // z.B. "Alt Ottersleben 10" -> {street: "Alt Ottersleben", houseNumber: "10"}
+      // z.B. "Provinzstraße 69a" -> {street: "Provinzstraße", houseNumber: "69a"}
+      function splitStreetAndHouseNumber(fullStreet) {
+        if (!fullStreet) return { street: "", houseNumber: "" };
+
+        const trimmed = fullStreet.trim();
+        // Suche nach letztem Leerzeichen, danach sollte die Hausnummer sein
+        const match = trimmed.match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
+        if (match) {
+          return {
+            street: match[1].trim(),
+            houseNumber: match[2].trim()
+          };
+        }
+        // Falls kein Match, gesamte Straße zurückgeben
+        return { street: trimmed, houseNumber: "" };
+      }
+
+      // Verteilt lange Namen auf mehrere Felder (DHL-Limit: 35 Zeichen pro Feld)
+      function splitLongNames(nameLines, maxLength = 35) {
+        const result = ["", "", ""];
+        let currentField = 0;
+
+        nameLines.forEach(line => {
+          if (!line || currentField >= 3) return;
+
+          // Wenn die Zeile ins aktuelle Feld passt
+          if (line.length <= maxLength) {
+            result[currentField] = line;
+            currentField++;
+          } else {
+            // Zeile ist zu lang, aufteilen bei Leerzeichen
+            const words = line.split(/\s+/);
+            let currentLine = "";
+
+            words.forEach((word, idx) => {
+              const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+              if (testLine.length <= maxLength) {
+                currentLine = testLine;
+              } else {
+                // Aktuelle Zeile speichern und neue beginnen
+                if (currentLine && currentField < 3) {
+                  result[currentField] = currentLine;
+                  currentField++;
+                }
+                currentLine = word;
+              }
+
+              // Letztes Wort
+              if (idx === words.length - 1 && currentLine && currentField < 3) {
+                result[currentField] = currentLine;
+                currentField++;
+              }
+            });
+          }
+        });
+
+        return { name1: result[0], name2: result[1], name3: result[2] };
+      }
+
+      // DHL-Heuristik: wählt eine "günstige" Klasse basierend auf Maßen & Gewicht
+      // WICHTIG: DHL erwartet die Produktcodes (V53WPAK, V01PAK, etc.)
+      function chooseDhlProduct(lengthCm, widthCm, heightCm, weightGrams) {
+        const l = Number(lengthCm) || 0;
+        const w = Number(widthCm) || 0;
+        const h = Number(heightCm) || 0;
+        const g = Number(weightGrams) || 0;
+
+        const dims = [l, w, h].sort((a, b) => b - a); // d1>=d2>=d3
+        const d1 = dims[0] || 0;
+        const d2 = dims[1] || 0;
+        const d3 = dims[2] || 0;
+
+        // V62KP = DHL Kleinpaket
+        // Max: 60x30x15 cm, bis 1 kg
+        if (g > 0 && g <= 1000 && d1 <= 60 && d2 <= 30 && d3 <= 15) {
+          return "V62KP";
+        }
+
+        // V01PAK = DHL Paket (Standardpaket)
+        // Für alle größeren/schwereren Sendungen
+        if (g > 0) {
+          return "V01PAK";
+        }
+        return "";
+      }
+
+      function buildCsv(rows) {
+        const sep = ";";
+        const headers = [
+          "fileName",
+          "orderId",
+          "name",
+          "name2",
+          "name3",
+          "street",
+          "postalCode",
+          "city",
+          "country",
+          "sku",
+          "asin",
+          "packageClassName",
+          "lengthCm",
+          "widthCm",
+          "heightCm",
+          "weightGrams",
+          "dhlProduct"
+        ];
+        const lines = [headers.join(sep)];
+
+        rows.forEach((r) => {
+          const asinKey = (r.asin || "").toUpperCase();
+          const mapping = asinKey ? ASIN_MAPPING[asinKey] : undefined;
+
+          const packageClassName = mapping?.className ?? "";
+          const lengthCm = mapping?.lengthCm ?? "";
+          const widthCm = mapping?.widthCm ?? "";
+          const heightCm = mapping?.heightCm ?? "";
+          const weightGrams = mapping?.weightGrams ?? "";
+          const dhlProduct = mapping?.dhlProduct ?? "";
+
+          if (asinKey && !mapping) {
+            log(
+              `⚠️ Keine Paketklasse für ASIN ${asinKey} (Order ${r.orderId}) – Maße/Gewicht/DHL-Produkt leer.`
+            );
+          }
+
+          const line = [
+            r.fileName,
+            r.orderId,
+            r.name,
+            r.name2 || "",
+            r.name3 || "",
+            r.street,
+            r.postalCode,
+            r.city,
+            r.country,
+            r.sku,
+            r.asin,
+            packageClassName,
+            lengthCm,
+            widthCm,
+            heightCm,
+            weightGrams,
+            dhlProduct
+          ]
+            .map(escapeCsv)
+            .join(sep);
+          lines.push(line);
+        });
+
+        return lines.join("\r\n");
+      }
+
+      // Konvertiert Ländername zu ISO-3-Alpha Code
+      function countryToIso3(country) {
+        const map = {
+          "Deutschland": "DEU",
+          "Germany": "DEU",
+          "Austria": "AUT",
+          "Österreich": "AUT",
+          "Switzerland": "CHE",
+          "Schweiz": "CHE",
+          "France": "FRA",
+          "Frankreich": "FRA",
+          "Italy": "ITA",
+          "Italien": "ITA",
+          "Spain": "ESP",
+          "Spanien": "ESP",
+          "Netherlands": "NLD",
+          "Niederlande": "NLD",
+          "Belgium": "BEL",
+          "Belgien": "BEL",
+          "Poland": "POL",
+          "Polen": "POL",
+          "Czech Republic": "CZE",
+          "Tschechien": "CZE",
+          "Denmark": "DNK",
+          "Dänemark": "DNK",
+          "Sweden": "SWE",
+          "Schweden": "SWE"
+        };
+        return map[country] || country;
+      }
+
+      // Baut DHL Sendungsdatenimport CSV - EXAKT nach DHL-Vorlage
+      function buildDhlCsv(rows) {
+        const sep = ";";
+        // EXAKTE Spalten aus autoComplete-Feld der DHL JSON-Vorlage (kopiert 1:1!)
+        const autoCompleteString = "Sendungsreferenz|Sendungsdatum|Absender Name 1|Absender Name 2|Absender Name 3|Absender Straße|Absender Hausnummer|Absender PLZ|Absender Ort|Absender Provinz|Absender Land|Absenderreferenz|Absender E-Mail-Adresse|Absender Telefonnummer|Empfänger Name 1|Empfänger Name 2 / Postnummer|Empfänger Name 3|Empfänger Straße|Empfänger Hausnummer|Empfänger PLZ|Empfänger Ort|Empfänger Provinz|Empfänger Land|Empfängerreferenz|Empfänger E-Mail-Adresse|Empfänger Telefonnummer|Gewicht|Länge|Breite|Höhe|Produkt- und Servicedetails|Retourenempfänger Name 1|Retourenempfänger Name 2|Retourenempfänger Name 3|Retourenempfänger Straße|Retourenempfänger Hausnummer|Retourenempfänger PLZ|Retourenempfänger Ort|Retourenempfänger Provinz|Retourenempfänger Land|Retourenrempfänger E-Mail-Adresse|Retourenempfänger Telefonnummer|Retouren-Abrechnungsnummer|Abrechnungsnummer|Service - Versandbestätigung - E-Mail Text-Vorlage|Service - Versandbestätigung - E-Mail-Adresse|Service - Nachnahme - Kontoreferenz|Service - Nachnahme - Betrag|Service - Nachnahme - IBAN|Service - Nachnahme - BIC|Service - Nachnahme - Zahlungsempfänger|Service - Nachnahme - Bankname|Service - Nachnahme - Verwendungszweck 1|Service - Nachnahme - Verwendungszweck 2|Service - Transportversicherung - Betrag|Service - Weltpaket - Vorausverfügungstyp|Service - DHL Europaket - Frankaturtyp|Sendungsdokumente - Ausfuhranmeldung|Sendungsdokumente - Rechnungsnummer|Sendungsdokumente - Genehmigungsnummer|Sendungsdokumente - Bescheinigungsnummer|Sendungsdokumente - Sendungsart|Sendungsdokumente - Beschreibung|Sendungsdokumente - Entgelte|Sendungsdokumente - Gesamtnettogewicht|Sendungsdokumente - MRN|Sendungsdokumente - Beschreibung (WP1)|Sendungsdokumente - Menge (WP1)|Sendungsdokumente - Zollwert (WP1)|Sendungsdokumente - Ursprungsland (WP1)|Sendungsdokumente - Zolltarifnummer (WP1)|Sendungsdokumente - Gewicht (WP1)|Sendungsdokumente - Beschreibung (WP2)|Sendungsdokumente - Menge (WP2)|Sendungsdokumente - Zollwert (WP2)|Sendungsdokumente - Ursprungsland (WP2)|Sendungsdokumente - Zolltarifnummer (WP2)|Sendungsdokumente - Gewicht (WP2)|Sendungsdokumente - Beschreibung (WP3)|Sendungsdokumente - Menge (WP3)|Sendungsdokumente - Zollwert (WP3)|Sendungsdokumente - Ursprungsland (WP3)|Sendungsdokumente - Zolltarifnummer (WP3)|Sendungsdokumente - Gewicht (WP3)|Sendungsdokumente - Beschreibung (WP4)|Sendungsdokumente - Menge (WP4)|Sendungsdokumente - Zollwert (WP4)|Sendungsdokumente - Ursprungsland (WP4)|Sendungsdokumente - Zolltarifnummer (WP4)|Sendungsdokumente - Gewicht (WP4)|Sendungsdokumente - Beschreibung (WP5)|Sendungsdokumente - Menge (WP5)|Sendungsdokumente - Zollwert (WP5)|Sendungsdokumente - Ursprungsland (WP5)|Sendungsdokumente - Zolltarifnummer (WP5)|Sendungsdokumente - Gewicht (WP5)|Sendungsdokumente - Beschreibung (WP6)|Sendungsdokumente - Menge (WP6)|Sendungsdokumente - Zollwert (WP6)|Sendungsdokumente - Ursprungsland (WP6)|Sendungsdokumente - Zolltarifnummer (WP6)|Sendungsdokumente - Gewicht (WP6)|Sendungsreferenz (Retoure)|Creation-Software|Absender Adresszusatz 1|Absender Adresszusatz 2|Absender Zustellinformation|Absender Ansprechpartner|Empfänger Adresszusatz 1|Empfänger Adresszusatz 2|Empfänger Zustellinformation|Empfänger Ansprechpartner|Retourenempfänger Adresszusatz 1|Retourenempfänger Adresszusatz 2|Retourenempfänger Zustellinformation|Retourenempfänger Ansprechpartner|Service - ind. Versendervorgabe Kennzeichen|Service - Zustelldatum|Service - Ident-Check - Vorname|Service - Ident-Check - Nachname|Service - Ident-Check - Geburtsdatum|Service - Ident-Check - Mindestalter|Service - Vorausverfügung|Service - Wunschnachbar - Details|Service - Wunschort - Details|Service - Alterssichtprüfung - Altersgrenze|Service - Sendungshandling|Service - beliebiger Hinweistext|Service - Zustellzeitfenster|Sendungsdokumente - Einlieferungsstelle|Kostenstelle|Service - Filial-Routing - E-Mail|Service - Wunschdatum|Retourenempfänger E-Mail-Adresse|Sendungserfassungsvorlage|GoGreenPlus (Beilegerretoure)";
+        const headers = autoCompleteString.split("|");
+        const lines = [headers.join(sep)];
+        const skippedRows = [];
+
+        rows.forEach((r) => {
+          const asinKey = (r.asin || "").toUpperCase();
+          const mapping = asinKey ? ASIN_MAPPING[asinKey] : undefined;
+
+          const lengthCm = mapping?.lengthCm ?? "";
+          const widthCm = mapping?.widthCm ?? "";
+          const heightCm = mapping?.heightCm ?? "";
+          const weightGrams = mapping?.weightGrams ?? "";
+          const dhlProduct = mapping?.dhlProduct ?? "";
+
+          // Abrechnungsnummer automatisch basierend auf DHL-Produkt auswählen
+          let billingNumber = "";
+          if (dhlProduct === "V62KP") {
+            billingNumber = document.getElementById("billingV62KP")?.value || "";
+          } else if (dhlProduct === "V01PAK") {
+            billingNumber = document.getElementById("billingV01PAK")?.value || "";
+          }
+          // Leerzeichen entfernen (DHL erwartet ohne Leerzeichen!)
+          billingNumber = billingNumber.replace(/\s+/g, "");
+
+          // Prüfen ob Pflichtfelder vorhanden sind
+          const hasWeight = weightGrams !== "" && !isNaN(weightGrams);
+          const hasDhlProduct = dhlProduct !== "";
+          const hasBillingNumber = billingNumber !== "";
+
+          // Wenn kritische Felder fehlen: Warnung ausgeben und Zeile überspringen
+          if (!hasWeight || !hasDhlProduct || !hasBillingNumber) {
+            const missing = [];
+            if (!hasWeight) missing.push("Gewicht");
+            if (!hasDhlProduct) missing.push("DHL-Produkt");
+            if (!hasBillingNumber) missing.push("Abrechnungsnummer");
+
+            skippedRows.push({
+              orderId: r.orderId,
+              asin: asinKey || "(keine ASIN)",
+              missing: missing.join(", ")
+            });
+            return; // Zeile überspringen
+          }
+
+          // Absenderdaten aus UI lesen
+          const senderName1 = document.getElementById("senderName1")?.value || "";
+          const senderName2 = document.getElementById("senderName2")?.value || "";
+          const senderStreetFull = document.getElementById("senderStreetFull")?.value || "";
+          const senderPlz = document.getElementById("senderPlz")?.value || "";
+          const senderCity = document.getElementById("senderCity")?.value || "";
+          const senderCountry = document.getElementById("senderCountry")?.value || "";
+          const senderStreetSplit = splitStreetAndHouseNumber(senderStreetFull);
+
+          // Empfänger: Straße und Hausnummer trennen
+          const streetSplit = splitStreetAndHouseNumber(r.street);
+
+          // DHL erwartet:
+          // - Gewicht in KILOGRAMM (nicht Gramm!)
+          // - Maße in ZENTIMETERN
+          // - Dezimalzahlen mit KOMMA (nicht Punkt)
+          const formatDecimal = (num) => {
+            if (num === "" || num === null || num === undefined) return "";
+            return num.toString().replace(".", ",");
+          };
+
+          // Gewicht von Gramm in Kilogramm umrechnen
+          const weightKg = weightGrams !== "" ? (weightGrams / 1000) : "";
+
+          // Land zu ISO-3-Alpha Code
+          const countryIso = countryToIso3(r.country || "");
+
+          // Array mit exakt so vielen Spalten wie im header
+          const row = new Array(headers.length).fill("");
+
+          // Maße: Entweder ALLE oder KEINE (DHL-Regel)
+          const hasAllDimensions = lengthCm !== "" && widthCm !== "" && heightCm !== "";
+          const length = hasAllDimensions ? formatDecimal(lengthCm) : "";
+          const width = hasAllDimensions ? formatDecimal(widthCm) : "";
+          const height = hasAllDimensions ? formatDecimal(heightCm) : "";
+
+          // DHL-Zeichenlimit: 35 Zeichen pro Textfeld
+          const truncate = (str, maxLen = 35) => str ? str.substring(0, maxLen) : "";
+
+          // Befülle Spalten gemäß autoComplete-Reihenfolge (0-indexed)
+          // Positionen aus dem autoComplete String (| separiert):
+          row[0] = truncate(r.orderId || "", 50);         // 0: Sendungsreferenz
+          // ABSENDER
+          row[2] = truncate(senderName1);                 // 2: Absender Name 1
+          row[3] = truncate(senderName2);                 // 3: Absender Name 2
+          row[5] = truncate(senderStreetSplit.street);    // 5: Absender Straße
+          row[6] = truncate(senderStreetSplit.houseNumber, 10); // 6: Absender Hausnummer
+          row[7] = truncate(senderPlz, 10);               // 7: Absender PLZ
+          row[8] = truncate(senderCity);                  // 8: Absender Ort
+          row[10] = truncate(senderCountry, 3);           // 10: Absender Land
+          // EMPFÄNGER
+          row[14] = truncate(r.name || "");               // 14: Empfänger Name 1
+          row[15] = truncate(r.name2 || "");              // 15: Empfänger Name 2 / Postnummer
+          row[16] = truncate(r.name3 || "");              // 16: Empfänger Name 3
+          row[17] = truncate(streetSplit.street);         // 17: Empfänger Straße
+          row[18] = truncate(streetSplit.houseNumber, 10);// 18: Empfänger Hausnummer
+          row[19] = truncate(r.postalCode || "", 10);     // 19: Empfänger PLZ
+          row[20] = truncate(r.city || "");               // 20: Empfänger Ort
+          row[22] = truncate(countryIso, 3);              // 22: Empfänger Land
+          // PAKET
+          row[26] = formatDecimal(weightKg);              // 26: Gewicht (kg)
+          row[27] = length;                               // 27: Länge (cm)
+          row[28] = width;                                // 28: Breite (cm)
+          row[29] = height;                               // 29: Höhe (cm)
+          row[30] = dhlProduct || "";                     // 30: Produkt- und Servicedetails
+          row[43] = billingNumber || "";                  // 43: Abrechnungsnummer
+          row[headers.length - 1] = "Nein";               // Letzte Spalte: GoGreenPlus (Beilegerretoure)
+
+          const line = row.map(escapeCsv).join(sep);
+          lines.push(line);
+        });
+
+        // Warnungen für übersprungene Zeilen ausgeben
+        if (skippedRows.length > 0) {
+          log("\n⚠️ WARNUNG: Folgende Bestellungen wurden NICHT exportiert (unvollständiges Mapping):");
+          skippedRows.forEach(skip => {
+            log(`   • Order ${skip.orderId} (ASIN: ${skip.asin}) - Fehlend: ${skip.missing}`);
+          });
+          log(`\n➡️ Bitte mapping für diese ASINs vervollständigen und erneut exportieren.`);
+        }
+
+        return lines.join("\r\n");
+      }
+
+      // Mapping aus Tabellen-UI neu aufbauen
+      function applyMappingFromTable() {
+        const tbody = document.querySelector("#mappingTable tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const map = {};
+
+        rows.forEach((row) => {
+          const className =
+            row.querySelector(".className")?.value.trim() || "";
+          const asinsRaw =
+            row.querySelector(".asins")?.value.trim() || "";
+          const lengthCm = parseFloat(
+            (row.querySelector(".length")?.value || "").replace(",", ".")
+          );
+          const widthCm = parseFloat(
+            (row.querySelector(".width")?.value || "").replace(",", ".")
+          );
+          const heightCm = parseFloat(
+            (row.querySelector(".height")?.value || "").replace(",", ".")
+          );
+          const weightGrams = parseFloat(
+            (row.querySelector(".weight")?.value || "").replace(",", ".")
+          );
+
+          const dhlProduct = chooseDhlProduct(
+            lengthCm,
+            widthCm,
+            heightCm,
+            weightGrams
+          );
+
+          const previewCell = row.querySelector(".dhlPreview");
+          if (previewCell) {
+            previewCell.textContent = dhlProduct || "";
+          }
+
+          // ASINs parsen: Komma, Semikolon oder Whitespace
+          const asinTokens = asinsRaw
+            .replace(/;/g, ",")
+            .split(/[\s,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          const statusCell = row.querySelector(".rowStatus");
+          // Status-Logik:
+          // - Mindestens eine ASIN und Gewicht vorhanden => grüner Haken
+          // - ASIN vorhanden, aber Maße/Gewicht unvollständig => gelber Punkt
+          // - sonst leer
+          if (statusCell) {
+            if (asinTokens.length && !isNaN(weightGrams)) {
+              statusCell.textContent = "✓";
+              statusCell.style.color = "#4caf50";
+              statusCell.title = "Mapping gespeichert (ASIN + Gewicht hinterlegt)";
+            } else if (asinTokens.length && (isNaN(weightGrams) || isNaN(lengthCm) || isNaN(widthCm) || isNaN(heightCm))) {
+              statusCell.textContent = "⚠";
+              statusCell.style.color = "#ff9800";
+              statusCell.title = "ASIN vorhanden, Maße/Gewicht unvollständig";
+            } else {
+              statusCell.textContent = "";
+              statusCell.removeAttribute("title");
+            }
+          }
+
+          // Wenn Zeile komplett leer ist, nichts ins Mapping schreiben
+          if (
+            !className &&
+            !asinTokens.length &&
+            isNaN(lengthCm) &&
+            isNaN(widthCm) &&
+            isNaN(heightCm) &&
+            isNaN(weightGrams)
+          ) {
+            return;
+          }
+
+          asinTokens.forEach((asin) => {
+            const key = asin.toUpperCase();
+            if (!key) return;
+            map[key] = {
+              className: className || "",
+              lengthCm: isNaN(lengthCm) ? "" : lengthCm,
+              widthCm: isNaN(widthCm) ? "" : widthCm,
+              heightCm: isNaN(heightCm) ? "" : heightCm,
+              weightGrams: isNaN(weightGrams) ? "" : Math.round(weightGrams),
+              dhlProduct: dhlProduct
+            };
+          });
+        });
+
+        ASIN_MAPPING = map;
+        log(`✔️ Mapping übernommen (${Object.keys(ASIN_MAPPING).length} ASIN(s)).`);
+      }
+
+      // Neue Paketklassen-Zeile erzeugen
+      function addMappingRow(defaults = {}) {
+        const tbody = document.querySelector("#mappingTable tbody");
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td><input class="className" placeholder="z.B. Standard-Paket" value="${defaults.className || ""}"></td>
+          <td>
+            <textarea class="asins asintextarea" rows="1" placeholder="B0AAA111, B0BBB222 ...">${defaults.asins || ""}</textarea>
+          </td>
+          <td><input class="length small-input" type="number" step="0.1" min="0" value="${defaults.lengthCm || ""}"></td>
+          <td><input class="width small-input" type="number" step="0.1" min="0" value="${defaults.widthCm || ""}"></td>
+          <td><input class="height small-input" type="number" step="0.1" min="0" value="${defaults.heightCm || ""}"></td>
+          <td><input class="weight small-input" type="number" step="1" min="0" value="${defaults.weightGrams || ""}"></td>
+          <td class="dhlPreview" style="font-size:11px; color:#666; font-weight:500;"></td>
+          <td class="rowStatus status-icon"></td>
+          <td style="text-align:center;">
+            <button type="button" class="deleteRowBtn delete-btn" title="Zeile löschen">🗑️</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+
+        // ASIN-Textarea initial auto-resizen
+        const ta = tr.querySelector(".asintextarea");
+        if (ta) {
+          autoResizeTextarea(ta);
+        }
+      }
+
+      // PLZ/Stadt-Helfer
+      function parsePostalAndCity(line) {
+        if (!line) return { postalCode: "", city: "" };
+        const cleaned = line.replace(/\s+/g, " ").trim();
+        const match = cleaned.match(/(\d{4,5})\s+(.+)/);
+        if (!match) return { postalCode: "", city: cleaned };
+        let city = match[2]
+          .replace(/\bDeutschland\b/i, "")
+          .replace(/\bGermany\b/i, "")
+          .trim();
+        return {
+          postalCode: match[1],
+          city
+        };
+      }
+
+      function parsePackingSlipFromHtml(html, fileName) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const results = [];
+
+        const allSlips = doc.querySelectorAll("[id^='myo-packing-slip-']");
+        const slipNodes = Array.from(allSlips).filter((node) =>
+          /^myo-packing-slip-\d+$/.test(node.id)
+        );
+        if (!slipNodes.length) {
+          log(`⚠️ In ${fileName} keine myo-packing-slip-Container gefunden.`);
+        }
+
+        slipNodes.forEach((slip, index) => {
+          const addrSpan = slip.querySelector(
+            "#myo-order-details-buyer-address"
+          );
+          let name = "",
+            name2 = "",
+            name3 = "",
+            street = "",
+            postalCode = "",
+            city = "",
+            country = "";
+
+          if (addrSpan) {
+            const rawLines = addrSpan.textContent
+              .split("\n")
+              .map((l) => l.trim())
+              .filter(Boolean);
+
+            // Schritt 1: PLZ finden (Anker für die Adressstruktur)
+            let plzLineIndex = -1;
+            for (let i = 0; i < rawLines.length; i++) {
+              const cleaned = rawLines[i].trim();
+              if (/^\d{4,5}$/.test(cleaned)) {
+                postalCode = cleaned;
+                plzLineIndex = i;
+                break;
+              } else if (/^\d{4,5}\s+\S/.test(cleaned)) {
+                const pc = parsePostalAndCity(cleaned);
+                postalCode = pc.postalCode;
+                city = pc.city;
+                plzLineIndex = i;
+                break;
+              }
+            }
+
+            // Schritt 2: Straße finden (letzte Zeile VOR PLZ, die nicht wie Name aussieht)
+            let streetLineIndex = -1;
+            if (plzLineIndex > 0) {
+              // Straße ist normalerweise die Zeile direkt vor der PLZ
+              streetLineIndex = plzLineIndex - 1;
+              street = rawLines[streetLineIndex];
+            }
+
+            // Schritt 3: Alle Zeilen VOR der Straße sind Namenszeilen
+            const nameLines = [];
+            for (let i = 0; i < streetLineIndex && i < rawLines.length; i++) {
+              const line = rawLines[i].trim();
+              // Ignoriere Land, falls es am Anfang steht
+              if (!/^(Deutschland|Germany|Austria|Österreich|Switzerland|Schweiz|France|Italy|Spain|Netherlands|Belgium|Poland|Czech|Denmark|Sweden)$/i.test(line)) {
+                nameLines.push(line);
+              }
+            }
+
+            // Verteile Namenszeilen intelligent auf name, name2, name3 (max 35 Zeichen pro Feld)
+            const splitNames = splitLongNames(nameLines);
+            name = splitNames.name1;
+            name2 = splitNames.name2;
+            name3 = splitNames.name3;
+
+            // Schritt 4: Stadt (Zeile nach PLZ)
+            if (plzLineIndex >= 0 && !city && plzLineIndex + 1 < rawLines.length) {
+              const nextLine = rawLines[plzLineIndex + 1].trim();
+              if (
+                nextLine &&
+                !/^(Deutschland|Germany|Austria|Österreich|Switzerland|Schweiz|France|Italy|Spain|Netherlands|Belgium|Poland|Czech|Denmark|Sweden)$/i.test(
+                  nextLine
+                )
+              ) {
+                city = nextLine;
+              }
+            }
+
+            // Schritt 5: Land (letzte Zeile)
+            for (let i = rawLines.length - 1; i >= 0; i--) {
+              const line = rawLines[i].trim();
+              if (
+                line &&
+                /^(Deutschland|Germany|Austria|Österreich|Switzerland|Schweiz|France|Italy|Spain|Netherlands|Belgium|Poland|Czech|Denmark|Sweden)$/i.test(
+                  line
+                )
+              ) {
+                country = line;
+                break;
+              }
+            }
+          } else {
+            log(
+              `⚠️ In ${fileName} (Slip ${index}) keine Lieferadresse gefunden.`
+            );
+          }
+
+          let orderId = "";
+          const orderIdEl = slip.querySelector(".myo-orderId");
+          if (orderIdEl) {
+            const text = orderIdEl.textContent;
+            const match = text.match(/(\d{3}-\d{7}-\d{7})/);
+            if (match) orderId = match[1];
+          }
+
+          const productCells = slip.querySelectorAll(
+            ".myo-mena-product-details"
+          );
+
+          if (!productCells.length) {
+            if (orderId && name && street && postalCode) {
+              results.push({
+                fileName,
+                orderId,
+                name,
+                name2,
+                name3,
+                street,
+                postalCode,
+                city,
+                country,
+                sku: "",
+                asin: ""
+              });
+            }
+            return;
+          }
+
+          productCells.forEach((cell) => {
+            let sku = "";
+            let asin = "";
+
+            const rows = cell.querySelectorAll(".a-row");
+            rows.forEach((row) => {
+              const labelEl = row.querySelector("span.a-text-bold");
+              if (!labelEl) return;
+
+              const key = labelEl.textContent.trim().replace(/:$/, "");
+              const spans = row.querySelectorAll("span");
+              const value =
+                spans.length > 1
+                  ? spans[spans.length - 1].textContent.trim()
+                  : "";
+
+              if (key === "SKU") {
+                sku = value;
+              } else if (key === "ASIN") {
+                asin = value.toUpperCase();
+              }
+            });
+
+            if (asin || sku) {
+              results.push({
+                fileName,
+                orderId,
+                name,
+                name2,
+                name3,
+                street,
+                postalCode,
+                city,
+                country,
+                sku,
+                asin
+              });
+            }
+          });
+        });
+
+        return results;
+      }
+
+      function downloadCsv(filename, content) {
+        // DHL erwartet ISO-8859-1 Encoding, NICHT UTF-8!
+        // Wir müssen den String manuell in ISO-8859-1 Bytes konvertieren
+        const bytes = new Uint8Array(content.length);
+        for (let i = 0; i < content.length; i++) {
+          const charCode = content.charCodeAt(i);
+          // ISO-8859-1 kann nur Zeichen bis 255 darstellen
+          bytes[i] = charCode > 255 ? 63 : charCode; // 63 = '?'
+        }
+
+        const blob = new Blob([bytes], { type: "text/csv;charset=iso-8859-1;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("addRowBtn").addEventListener("click", () => {
+        addMappingRow();
+        saveToLocalStorage();
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (confirm("Wirklich alle gespeicherten Daten löschen? Diese Aktion kann nicht rückgängig gemacht werden!")) {
+          localStorage.removeItem(STORAGE_KEYS.sender);
+          localStorage.removeItem(STORAGE_KEYS.billing);
+          localStorage.removeItem(STORAGE_KEYS.mappingRows);
+          location.reload();
+        }
+      });
+
+      document
+        .getElementById("applyMappingBtn")
+        .addEventListener("click", () => {
+          applyMappingFromTable();
+          saveToLocalStorage();
+        });
+
+      // Event-Delegation für Löschen-Buttons und Live-Updates
+      const tbodyEl = document.querySelector("#mappingTable tbody");
+
+      tbodyEl.addEventListener("click", (e) => {
+        if (e.target.classList.contains("deleteRowBtn")) {
+          const tr = e.target.closest("tr");
+          if (tr) {
+            tr.remove();
+            applyMappingFromTable();
+            saveToLocalStorage();
+          }
+        }
+      });
+
+      tbodyEl.addEventListener("input", (e) => {
+        // ASIN-Textarea automatisch in der Höhe anpassen
+        if (e.target.classList.contains("asintextarea")) {
+          autoResizeTextarea(e.target);
+        }
+
+        // Für Maße/Gewicht: lokale DHL-Vorschau aktualisieren
+        if (
+          e.target.classList.contains("length") ||
+          e.target.classList.contains("width") ||
+          e.target.classList.contains("height") ||
+          e.target.classList.contains("weight")
+        ) {
+          const row = e.target.closest("tr");
+          if (!row) return;
+
+          const lengthCm = parseFloat(
+            (row.querySelector(".length")?.value || "").replace(",", ".")
+          );
+          const widthCm = parseFloat(
+            (row.querySelector(".width")?.value || "").replace(",", ".")
+          );
+          const heightCm = parseFloat(
+            (row.querySelector(".height")?.value || "").replace(",", ".")
+          );
+          const weightGrams = parseFloat(
+            (row.querySelector(".weight")?.value || "").replace(",", ".")
+          );
+
+          const dhlProduct = chooseDhlProduct(
+            lengthCm,
+            widthCm,
+            heightCm,
+            weightGrams
+          );
+          const previewCell = row.querySelector(".dhlPreview");
+          if (previewCell) {
+            previewCell.textContent = dhlProduct || "";
+          }
+        }
+
+        // Auto-Save bei jeder Änderung
+        saveToLocalStorage();
+      });
+
+      // Auto-Save für Absender-Felder
+      document.addEventListener("input", (e) => {
+        if (
+          e.target.id === "senderName1" ||
+          e.target.id === "senderName2" ||
+          e.target.id === "senderStreetFull" ||
+          e.target.id === "senderPlz" ||
+          e.target.id === "senderCity" ||
+          e.target.id === "senderCountry" ||
+          e.target.id === "billingV62KP" ||
+          e.target.id === "billingV01PAK"
+        ) {
+          saveToLocalStorage();
+        }
+      });
+
+      document.getElementById("runBtn").addEventListener("click", () => {
+        const input = document.getElementById("files");
+        const files = Array.from(input.files || []);
+        const logEl = document.getElementById("log");
+        logEl.innerHTML = "";
+        document.getElementById("logCount").textContent = "0";
+
+        if (!files.length) {
+          log("Bitte zuerst mindestens eine HTML-Datei auswählen.");
+          return;
+        }
+
+        // vor dem Lauf: Mapping aus UI einlesen
+        applyMappingFromTable();
+
+        const allRows = [];
+        let processed = 0;
+
+        files.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const html = e.target.result;
+            const rows = parsePackingSlipFromHtml(html, file.name);
+            rows.forEach((r) => allRows.push(r));
+            log(`✔️ ${file.name}: ${rows.length} Zeile(n) extrahiert.`);
+            processed++;
+            if (processed === files.length) {
+              if (!allRows.length) {
+                log(
+                  "Keine Daten extrahiert – prüfe bitte, ob es echte Amazon-Lieferscheine sind."
+                );
+                return;
+              }
+              const csv = buildCsv(allRows);
+              const stamp = new Date().toISOString().slice(0, 10);
+              const filename = `amazon_lieferscheine_${stamp}.csv`;
+              downloadCsv(filename, csv);
+              log(`\nFertig. CSV heruntergeladen: ${filename}`);
+            }
+          };
+          reader.onerror = () => {
+            log(`❌ Fehler beim Lesen von ${file.name}`);
+            processed++;
+          };
+          reader.readAsText(file, "utf-8");
+        });
+      });
+
+      document.getElementById("runDhlBtn").addEventListener("click", () => {
+        const input = document.getElementById("files");
+        const files = Array.from(input.files || []);
+        const logEl = document.getElementById("log");
+        logEl.innerHTML = "";
+        document.getElementById("logCount").textContent = "0";
+
+        if (!files.length) {
+          log("Bitte zuerst mindestens eine HTML-Datei auswählen.");
+          return;
+        }
+
+        // vor dem Lauf: Mapping aus UI einlesen
+        applyMappingFromTable();
+
+        const allRows = [];
+        let processed = 0;
+
+        files.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const html = e.target.result;
+            const rows = parsePackingSlipFromHtml(html, file.name);
+            rows.forEach((r) => allRows.push(r));
+            log(`✔️ ${file.name}: ${rows.length} Zeile(n) extrahiert.`);
+            processed++;
+            if (processed === files.length) {
+              if (!allRows.length) {
+                log(
+                  "Keine Daten extrahiert – prüfe bitte, ob es echte Amazon-Lieferscheine sind."
+                );
+                return;
+              }
+              const csv = buildDhlCsv(allRows);
+              const csvLines = csv.split("\r\n").length - 1; // -1 für Header
+              const stamp = new Date().toISOString().slice(0, 10);
+              const filename = `dhl_sendungsdatenimport_${stamp}.csv`;
+              downloadCsv(filename, csv);
+              log(`\n✔️ Fertig! ${csvLines} Sendung(en) exportiert.`);
+              log(`   DHL CSV heruntergeladen: ${filename}`);
+            }
+          };
+          reader.onerror = () => {
+            log(`❌ Fehler beim Lesen von ${file.name}`);
+            processed++;
+          };
+          reader.readAsText(file, "utf-8");
+        });
+      });
+
+      // Dateigröße formatieren
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+      }
+
+      // Dateiliste aktualisieren
+      function updateFileList() {
+        const fileInput = document.getElementById('files');
+        const fileList = document.getElementById('fileList');
+        const uploadArea = document.getElementById('uploadArea');
+        const files = Array.from(fileInput.files || []);
+
+        fileList.innerHTML = '';
+
+        if (files.length > 0) {
+          uploadArea.classList.add('has-files');
+
+          files.forEach(file => {
+            const li = document.createElement('li');
+            li.className = 'file-item';
+            li.innerHTML = `
+              <span class="file-item-icon">📄</span>
+              <span class="file-item-name">${file.name}</span>
+              <span class="file-item-size">${formatFileSize(file.size)}</span>
+            `;
+            fileList.appendChild(li);
+          });
+        } else {
+          uploadArea.classList.remove('has-files');
+        }
+      }
+
+      // Drag & Drop für Upload-Area
+      function setupDragAndDrop() {
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('files');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+          uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.add('dragover');
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.remove('dragover');
+          }, false);
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          fileInput.files = files;
+          updateFileList();
+        }, false);
+
+        // Dateiauswahl-Event
+        fileInput.addEventListener('change', updateFileList);
+      }
+
+      // Beim Laden: Gespeicherte Daten laden oder Beispielzeilen anlegen
+      window.addEventListener("DOMContentLoaded", () => {
+        // Setup Drag & Drop
+        setupDragAndDrop();
+
+        // Versuche zuerst, gespeicherte Daten zu laden
+        loadFromLocalStorage();
+
+        // Wenn keine Daten vorhanden, zeige Beispielzeilen
+        const tbody = document.querySelector("#mappingTable tbody");
+        if (tbody.querySelectorAll("tr").length === 0) {
+          addMappingRow({
+            className: "Standard-Paket (über 1kg)",
+            asins: "B0EXAMPLE1, B0EXAMPLE2",
+            lengthCm: 60,
+            widthCm: 35,
+            heightCm: 10,
+            weightGrams: 1500
+          });
+          addMappingRow({
+            className: "Kleinpaket (bis 1kg)",
+            asins: "B0EXAMPLE3",
+            lengthCm: 30,
+            widthCm: 20,
+            heightCm: 10,
+            weightGrams: 450
+          });
+        }
+
+        applyMappingFromTable();
+      });
+    </script>
+  </body>
+</html>
+```
