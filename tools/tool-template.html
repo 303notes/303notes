@@ -20,24 +20,42 @@
 <section>
   <h2>Problem</h2>
   <p>
-    Amazon FBM order exports cannot be imported directly into DHL,
-    which leads to manual data entry and shipping errors.
+    I sell products on Amazon in Germany and ship most of my items via FBA (Fulfillment by Amazon), but some ASINs I ship via FBM (Fulfillment by Merchant). I have a DHL Business account, but there is no easy or affordable integration between Amazon Seller Central and DHL.
+
+As a result, I had to manually create up to 10 shipments per day, repeatedly copying the recipient’s name, company, street, house number, postal code, and selecting the correct parcel template. This was a boring, repetitive task that took me around 30 minutes every day.
   </p>
 
   <h2>Solution</h2>
   <p>
-    This tool converts Amazon FBM order exports into a DHL-compatible CSV file.
-    No manual editing required.
+    I vibe-coded a simple tool that converts Amazon delivery slips into a DHL-compatible CSV import.
+  </p>
+  <p>
+    My workflow now looks like this:
+  </p>
+  <ol>
+    <li>Download the delivery slip as an HTML file</li>
+    <li>Upload it to the <strong>FBM2DHL</strong> tool</li>
+    <li>Generate a CSV for DHL <strong>"📦 DHL shipment data import"</strong></li>
+    <li>Upload the CSV to DHL and generate all shipping labels</li>
+    <li>Manually add the tracking numbers back into Seller Central</li>
+  </ol>
+  <p>
+    This saves me 10–30 minutes every day, and for the first time I don't dread creating shipping labels anymore.
   </p>
 
-  <h2>Status</h2>
+  <h2>Who is this for</h2>
   <p>
-    Works for me. Minimal and rough. No guarantees.
+    Amazon sellers who mostly ship <strong>one ASIN per order</strong> via FBM.
   </p>
 
-  <h2>Who this is for</h2>
+  <h2>Status &amp; Limitations</h2>
+  <ul>
+    <li>If you usually ship one ASIN per order, this tool can save you a significant amount of time.</li>
+    <li>You can define unique carton dimensions and weights and assign one or more ASINs to each carton size.</li>
+    <li>When an ASIN is detected in the delivery slip, it is automatically mapped to the corresponding package configuration.</li>
+  </ul>
   <p>
-    Amazon FBM sellers shipping orders via DHL.
+    For orders containing multiple different ASINs, a more advanced mapping logic would be required.
   </p>
 
   <h2>Link</h2>
@@ -45,6 +63,11 @@
     <a href="#">GitHub / Download</a>
   </p>
 </section>
+
+<footer>
+  <a href="/">← 303notes</a><br>
+  Published: 2024-12-16
+</footer>
 
 </body>
 </html>
